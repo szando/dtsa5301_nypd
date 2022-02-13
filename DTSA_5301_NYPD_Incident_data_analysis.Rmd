@@ -1,7 +1,7 @@
 ---
 title: "DTSA 5301 - NYPD Incident data analysis"
 output:
-  html_document: default
+  pdf_document: default
 ---
 
 
