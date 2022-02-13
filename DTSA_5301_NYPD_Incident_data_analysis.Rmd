@@ -14,13 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 The original data was downloaded from the U.S. Government’s open data website. It is available at https://catalog.data.gov/dataset/nypd-shooting-incident-data-historic, but the analysis was performed on a local copy to ensure reproducibility.
 The local CSV file is stored in the *data* directory.
 
-```{r nypd_raw_summary}
-nypd_shoot_raw <- read.csv("data/NYPD_Shooting_Incident_Data__Historic_.csv")
-head(nypd_shoot_raw)
-str(nypd_shoot_raw)
-```
-
-## Transforming and tidying the data set
+Importing the required libraries
 
 ```{r libraries, message=FALSE}
 library(dplyr)
@@ -28,7 +22,18 @@ library(ggplot2)
 library(lubridate)
 ```
 
+Fetching the data. Either a local copy or the online version.
 
+```{r nypd_raw_summary}
+if(file.exists("data/NYPD_Shooting_Incident_Data__Historic_.csv")){
+  nypd_shoot_raw <- read.csv("data/NYPD_Shooting_Incident_Data__Historic_.csv")
+} else{
+  nypd_shoot_raw <- read.csv("https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD")}
+head(nypd_shoot_raw)
+str(nypd_shoot_raw)
+```
+
+## Transforming and tidying the data set
 ### Handling 'Not Available' values
 
 The tidy data set should not contain any unavailable values. The below R code returns the number of NA values for each column in the downloaded data set.
