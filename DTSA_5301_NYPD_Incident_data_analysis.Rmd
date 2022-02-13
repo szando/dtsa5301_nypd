@@ -1,0 +1,100 @@
+---
+title: "DTSA 5301 - NYPD Incident data analysis"
+output:
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The data source
+
+The original data was downloaded from the U.S. Government’s open data website. It is available at https://catalog.data.gov/dataset/nypd-shooting-incident-data-historic, but the analysis was performed on a local copy to ensure reproducibility.
+The local CSV file is stored in the *data* directory.
+
+```{r nypd_raw_summary}
+nypd_shoot_raw <- read.csv("data/NYPD_Shooting_Incident_Data__Historic_.csv")
+head(nypd_shoot_raw)
+str(nypd_shoot_raw)
+```
+
+## Transforming and tidying the data set
+
+```{r libraries, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+```
+
+
+### Handling 'Not Available' values
+
+The tidy data set should not contain any unavailable values. The below R code returns the number of NA values for each column in the downloaded data set.
+```{r nypd_nas}
+colSums(is.na(nypd_shoot_raw))
+```
+
+The only column that contains NAs is the 'JURISDICTION_CODE'. We can safely ignore it as this column is not a part of the analysis and therefore was not included in the tidy data set.
+
+There are two columns whose factor levels include empty strings (""): PERP_AGE_GROUP and LOCATION_DESC. These values were replaced with "UNKNOWN".
+
+### Selecting and formatting the columns relevant to our analysis
+The analysis was limited to the time and location of the incidents, and the age of the perpetrators and victims was kept in the tidy data set for future use. The location information is available as FACTORS, i.e. categories, as well as spatial data.
+Spatial data was discarded for the time being and only the LOCATION_DESC and BORO columns were kept.
+
+The OCCUR_DATE and OCCUR_TIME columns hold the time-related data of each incident as character strings. These were converted to the correct Date and Time types.
+
+The following code block selects and converts all data relevant to the analysis.
+
+```{r select_columns}
+levels(nypd_shoot_raw$LOCATION_DESC) <- c(levels(nypd_shoot_raw$LOCATION_DESC), "UNKNOWN")
+nypd_shoot_tidy <- nypd_shoot_raw %>%
+mutate(OCCUR_DATE = strptime(OCCUR_DATE, format="%m/%d/%Y")) %>%
+mutate(OCCUR_TIME =  strptime(OCCUR_TIME, format="%H:%M:%S")) %>%
+mutate(LOCATION_DESC = replace(LOCATION_DESC, LOCATION_DESC=="", "UNKNOWN")) %>%
+mutate(PERP_AGE_GROUP = replace(PERP_AGE_GROUP, PERP_AGE_GROUP=="", "UNKNOWN")) %>%
+select(INCIDENT_KEY, BORO, PRECINCT, LOCATION_DESC, PERP_AGE_GROUP, VIC_AGE_GROUP, OCCUR_DATE, OCCUR_TIME)
+```
+
+The summary of the tidy data set:
+```{r tidy_summary}
+str(nypd_shoot_tidy)
+summary(nypd_shoot_tidy)
+```
+
+## Visualization and analysis
+
+The focus of the analysis was the time and location (borough) of each incident.
+
+Over the time period for which data was available, the highest number of shooting incidents occurred in Brooklyn.
+
+```{r shooting_boroughs, message=FALSE}
+ggplot(nypd_shoot_tidy, aes(BORO)) + geom_bar() + xlab("NYC Borough") + ylab("Shooting incidents")
+```
+
+The below graph shows the changes in the number of shooting incidents over the observed time period.
+
+```{r shooting_time, message=FALSE}
+nypd_shoot_by_date <- nypd_shoot_tidy %>%
+group_by(OCCUR_DATE) %>%
+summarise(incidents = n())
+nypd_shoot_by_date$OCCUR_DATE <- ymd(nypd_shoot_by_date$OCCUR_DATE)
+qplot(nypd_shoot_by_date$OCCUR_DATE, nypd_shoot_by_date$incidents,geom=c("point", "smooth"), xlab = "Incident date", ylab = "Number of incidents", main = "NYPD Shooting incidents over time")
+```
+
+## Conclusion and biases 
+
+The data shows a downward trend in the number of shooting incidents involving the NYPD up until 2019, when a sudden change seems to have occurred and the trend changed direction.
+
+Of the five boroughs of NYC, the highest number of incidents occurred in Brooklyn and the lowest in Staten Island.
+
+Possible sources of bias in the variables included in the analysis:
+
+  *   There is no information available on the data collection method and some incidents may have been reported in a borough different from where it actually occurred
+  *   It's not entirely clear if the OCCUR_DATE column holds the date of the incident or the date when it was reported.
+  *   Personal bias: none. I live in Europe and have no ties to NYC whatsoever, therefore from my perspective the outcome of this data analysis is entirely inconsequential.
+
+
+
