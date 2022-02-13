@@ -85,7 +85,7 @@ qplot(nypd_shoot_by_date$OCCUR_DATE, nypd_shoot_by_date$incidents,geom=c("point"
 ```
 
 ## Conclusion and biases 
-
+  
 The data shows a downward trend in the number of shooting incidents involving the NYPD up until 2019, when a sudden change seems to have occurred and the trend changed direction.
 
 Of the five boroughs of NYC, the highest number of incidents occurred in Brooklyn and the lowest in Staten Island.
