@@ -11,4 +11,11 @@ There is nothing to be updated in the Rmd file, you should be able to run it aft
 - ggplot2
 - lubridate
 
+The course slides specifically mention not to include package installation code in our Rmd files, so here's a little help:
+```r
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("lubridate")
+```
+
 Thanks for taking the time to assess my project and good luck with yours!
